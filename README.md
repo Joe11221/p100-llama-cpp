@@ -142,6 +142,13 @@ fetched each activation four times. Four agents on qwen3.8-27b go from **16.0 to
 cannot have with one sequence but can with several: the recurrent memory reorders
 cells. [`docs/concurrent-decode.md`](docs/concurrent-decode.md)
 
+Patch `0012` keeps the special GQA-6 flash-attention tile ladder GP100-only.
+Patch `0010`'s `launch_fattn<256, 8, 6>` configuration has zero occupancy on an
+sm_61 P40 and triggers a launch assertion. Other architectures now use the
+existing power-of-two ladder, which handles a GQA ratio of six through its
+two-head kernel. The Q4_0 direct-tile and staging checks use the same GP100 gate
+so dispatch and allocation stay consistent.
+
 `0001` and `0002` are 61 added lines across two files: one architecture-neutral,
 the other guarded to GP100 and byte-identical SASS on every other card. `0003` and
 `0004` are both in `allreduce.cu` and only affect `-sm tensor` across two GPUs.
